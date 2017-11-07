@@ -1,0 +1,70 @@
+---
+resources:
+- name: master
+  type: git
+  source:
+    uri: ((github_uri))
+    branch: master
+    private_key: ((github_ssh_key))
+
+- name: gh-release
+  type: github-release
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: ((github_uri))
+    branch: version
+    file: version  
+    private_key: ((github_ssh_key))
+    initial_version: 0.0.0
+
+jobs:
+- name: build-rc
+  plan:
+  - get: master
+    trigger: true
+
+  - task: build-artifact
+    file: master/ci/tasks/build-artifact.yml
+
+  - get: version
+    params: 
+      pre: rc
+
+  - put: gh-release
+    params:
+      pre_release: true
+      name: version/version
+      tag: version/version
+      globs:
+      - artifacts/*.tgz
+
+  - put: version
+    params:
+      file: version/version
+
+- name: promote-a-release
+  plan:
+  - get: version
+    params:
+      bump: final
+
+  - get: gh-release
+    passed: [ build-rc ]
+
+  - put: gh-release
+    params:
+      name: version/version
+      tag: version/version
+      globs:
+      - gh-release/*.tgz
+
+  - put: version
+    params:
+      file: version/version
