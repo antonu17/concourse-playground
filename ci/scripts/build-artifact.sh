@@ -1,3 +1,3 @@
 #!/bin/sh
 
-tar zcf ../artifacts/artifact.tgz -C master .
+tar zcf artifacts/artifact.tgz -C master .
