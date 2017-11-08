@@ -7,12 +7,24 @@ resources:
     branch: master
     private_key: ((github_ssh_key))
 
-- name: gh-release
+
+- name: gh-release-candidate
   type: github-release
   source:
     owner: ((github_owner))
     repository: ((github_repo))
     access_token: ((github_token))
+    release: false
+    pre_release: true
+
+- name: gh-release-final
+  type: github-release
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: true
+    pre_release: false
 
 - name: version
   type: semver
@@ -37,9 +49,8 @@ jobs:
     params: 
       pre: rc
 
-  - put: gh-release
+  - put: gh-release-candidate
     params:
-      pre_release: true
       name: version/version
       tag: version/version
       globs:
@@ -55,15 +66,15 @@ jobs:
     params:
       bump: final
 
-  - get: gh-release
+  - get: gh-release-candidate
     passed: [ build-rc ]
 
-  - put: gh-release
+  - put: gh-release-final
     params:
       name: version/version
       tag: version/version
       globs:
-      - gh-release/*.tgz
+      - gh-release-candidate/*.tgz
 
   - put: version
     params:
