@@ -66,7 +66,6 @@ jobs:
   plan:
   - get: version
     passed: [ build-rc ]
-    trigger: true
     params:
       bump: final
 
@@ -112,3 +111,4 @@ jobs:
   - put: version
     params:
       bump: patch
+      pre: crutch
