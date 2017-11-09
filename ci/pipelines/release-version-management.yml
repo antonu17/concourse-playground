@@ -79,3 +79,32 @@ jobs:
   - put: version
     params:
       file: version/version
+
+- name: deploy
+  plan:
+  - get: version
+    passed: [ promote-a-release ]
+    trigger: true
+  - get: master
+
+  - task: alert-deployment-start
+    file: master/ci/tasks/alert.yml
+    params:
+      MESSAGE: Deployment of version %s started\n
+
+  - task: alert-deployment-finish
+    file: master/ci/tasks/alert.yml
+    params:
+      MESSAGE: Deployment of version %s finished\n
+
+- name: bump-patch-version
+  plan:
+  - get: version
+    passed: [ promote-a-release ]
+    trigger: true
+    params:
+      bump: patch
+
+  - put: version
+    params:
+      file: version/version
