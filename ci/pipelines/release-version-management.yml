@@ -38,6 +38,7 @@ resources:
 
 jobs:
 - name: build-rc
+  serial_groups: [ version ]
   plan:
   - get: master
     trigger: true
@@ -46,7 +47,7 @@ jobs:
     file: master/ci/tasks/build-artifact.yml
 
   - get: version
-    params: 
+    params:
       pre: rc
 
   - put: gh-release-candidate
@@ -61,8 +62,10 @@ jobs:
       file: version/version
 
 - name: promote-a-release
+  serial_groups: [ version ]
   plan:
   - get: version
+    trigger: true
     params:
       bump: final
 
@@ -81,6 +84,7 @@ jobs:
       file: version/version
 
 - name: deploy
+  serial_groups: [ version ]
   plan:
   - get: version
     passed: [ promote-a-release ]
@@ -97,14 +101,13 @@ jobs:
     params:
       MESSAGE: Deployment of version %s finished\n
 
-- name: bump-patch-version
+- name: patch
+  serial_groups: [ version ]
   plan:
   - get: version
     passed: [ promote-a-release ]
     trigger: true
-    params:
-      bump: patch
 
   - put: version
     params:
-      file: version/version
+      bump: patch
