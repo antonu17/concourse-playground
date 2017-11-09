@@ -1,7 +1,7 @@
 #!/bin/sh
 
-set -ex
+set -e
 
 VERSION=$(cat version/version)
 
-echo "${MESSAGE}" "${VERSION}"
+printf "${MESSAGE}" "${VERSION}"
