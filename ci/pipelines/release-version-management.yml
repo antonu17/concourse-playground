@@ -1,4 +1,10 @@
 ---
+resource_types:
+- name: semver-depth
+  type: docker-image
+  source:
+      repository: quay.io/antonu17/semver-resource-depth
+
 resources:
 - name: master
   type: git
@@ -27,7 +33,7 @@ resources:
     pre_release: false
 
 - name: version
-  type: semver
+  type: semver-depth
   source:
     driver: git
     uri: ((github_uri))
@@ -35,6 +41,7 @@ resources:
     file: version  
     private_key: ((github_ssh_key))
     initial_version: 0.0.0
+    depth: 1
 
 jobs:
 - name: build-rc
