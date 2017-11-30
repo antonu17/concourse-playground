@@ -13,6 +13,13 @@ resources:
     branch: master
     private_key: ((github_ssh_key))
 
+- name: release-tag
+  type: git
+  source:
+    uri: ((github_uri))
+    branch: master
+    private_key: ((github_ssh_key))
+    tag_filter: '-release'
 
 - name: gh-release-candidate
   type: github-release
@@ -44,16 +51,30 @@ resources:
     depth: 1
 
 jobs:
+- name: bump-version
+  plan:
+  - get: master
+    trigger: true
+
+  - put: version
+    params:
+      bump: patch
+      pre: rc
+
 - name: build-rc
   serial_groups: [ version ]
   plan:
   - get: master
+    passed:
+    - bump-version
     trigger: true
 
   - task: build-artifact
     file: master/ci/tasks/build-artifact.yml
 
   - get: version
+    passed:
+    - bump-version
     params:
       pre: rc
 
@@ -108,14 +129,11 @@ jobs:
     params:
       MESSAGE: Deployment of version %s finished\n
 
-- name: patch
-  serial_groups: [ version ]
+- name: build-release-tag
   plan:
-  - get: version
-    passed: [ promote-a-release ]
+  - get: master
+    resource: release-tag
     trigger: true
 
-  - put: version
-    params:
-      bump: patch
-      pre: crutch
+  - task: build-artifact
+    file: master/ci/tasks/build-artifact.yml
