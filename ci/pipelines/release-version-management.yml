@@ -19,7 +19,7 @@ resources:
     uri: ((github_uri))
     branch: master
     private_key: ((github_ssh_key))
-    tag_filter: '-release'
+    tag_filter: '*-release'
 
 - name: gh-release-candidate
   type: github-release
