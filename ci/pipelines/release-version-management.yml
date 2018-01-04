@@ -40,7 +40,7 @@ resources:
     pre_release: false
 
 - name: version
-  type: semver-depth
+  type: semver
   source:
     driver: git
     uri: ((github_uri))
