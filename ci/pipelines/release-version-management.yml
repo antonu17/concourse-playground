@@ -80,7 +80,7 @@ resources:
   type: pull-request
   source:
     base: master
-    uri: ((github_repo))
+    uri: ((github_uri))
     repo: antonu17/concourse-playground
     access_token: ((github_token))
     private_key: ((github_ssh_key))
@@ -192,5 +192,17 @@ jobs:
     params:
       name: version-draft/number
       tag: version-draft/number
+      globs:
+      - artifacts/*.tgz
+
+  - put: version-draft
+    params:
+      bump: patch
+
+  - put: gh-release-draft
+    params:
+      name: version-draft/number
+      tag: artifacts/hash
+      body: artifacts/body
       globs:
       - artifacts/*.tgz
