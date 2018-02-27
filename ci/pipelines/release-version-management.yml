@@ -193,6 +193,7 @@ jobs:
       name: version-draft/number
       tag: artifacts/hash
       body: artifacts/body
+      target_commit: artifacts/target_commit
       globs:
       - artifacts/*.tgz
 
@@ -204,5 +205,6 @@ jobs:
     params:
       name: version-draft/number
       tag: version-draft/number
+      target_commit: artifacts/target_commit
       globs:
       - artifacts/*.tgz
