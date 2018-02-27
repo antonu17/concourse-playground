@@ -3,7 +3,12 @@ resource_types:
 - name: semver-depth
   type: docker-image
   source:
-      repository: quay.io/antonu17/semver-resource-depth
+    repository: quay.io/antonu17/semver-resource-depth
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
 
 resources:
 - name: master
@@ -39,6 +44,16 @@ resources:
     release: true
     pre_release: false
 
+- name: gh-release-draft
+  type: github-release
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: false
+    pre_release: false
+    drafts: true
+
 - name: version
   type: semver
   source:
@@ -49,6 +64,26 @@ resources:
     private_key: ((github_ssh_key))
     initial_version: 0.0.0
     depth: 1
+
+- name: version-draft
+  type: semver
+  source:
+    driver: git
+    uri: ((github_uri))
+    branch: version
+    file: version-draft
+    private_key: ((github_ssh_key))
+    initial_version: 0.0.0
+    depth: 1
+
+- name: pr
+  type: pull-request
+  source:
+    base: master
+    uri: ((github_repo))
+    repo: antonu17/concourse-playground
+    access_token: ((github_token))
+    private_key: ((github_ssh_key))
 
 jobs:
 - name: bump-version
@@ -137,3 +172,25 @@ jobs:
 
   - task: build-artifact
     file: master/ci/tasks/build-artifact.yml
+
+# PR flow
+- name: build-pr
+  plan:
+  - get: master
+    resource: pr
+    version: every
+    trigger: true
+
+  - put: version-draft
+    params:
+      bump: patch
+  
+  - task: build-artifact
+    file: master/ci/tasks/build-artifact.yml
+
+  - put: gh-release-draft
+    params:
+      name: version-draft/number
+      tag: version-draft/number
+      globs:
+      - artifacts/*.tgz
