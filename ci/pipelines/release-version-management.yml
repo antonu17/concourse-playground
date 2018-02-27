@@ -191,7 +191,8 @@ jobs:
   - put: gh-release-draft
     params:
       name: version-draft/number
-      tag: version-draft/number
+      tag: artifacts/hash
+      body: artifacts/body
       globs:
       - artifacts/*.tgz
 
@@ -202,7 +203,6 @@ jobs:
   - put: gh-release-draft
     params:
       name: version-draft/number
-      tag: artifacts/hash
-      body: artifacts/body
+      tag: version-draft/number
       globs:
       - artifacts/*.tgz
