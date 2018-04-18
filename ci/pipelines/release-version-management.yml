@@ -10,6 +10,18 @@ resource_types:
   source:
     repository: jtarchie/pr
 
+- name: gh-release-62
+  type: docker-image
+  source:
+    repository: concourse/github-release-resource
+    tag: pr-62
+
+- name: gh-release-dev
+  type: docker-image
+  source:
+    repository: quay.io/antonu17/github-release-resource
+    tag: dev
+
 resources:
 - name: master
   type: git
@@ -46,6 +58,26 @@ resources:
 
 - name: gh-release-draft
   type: github-release
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: false
+    pre_release: false
+    drafts: true
+
+- name: gh-release-draft-62
+  type: gh-release-62
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: false
+    pre_release: false
+    drafts: true
+
+- name: gh-release-draft-dev
+  type: gh-release-dev
   source:
     owner: ((github_owner))
     repository: ((github_repo))
@@ -188,7 +220,7 @@ jobs:
   - task: build-artifact
     file: master/ci/tasks/build-artifact.yml
 
-  - put: gh-release-draft
+  - put: gh-release-draft-62
     params:
       name: version-draft/number
       tag: artifacts/hash
@@ -206,3 +238,72 @@ jobs:
       tag: version-draft/number
       globs:
       - artifacts/*.tgz
+
+- name: print-draft-release-62
+  plan:
+    - get: gh-release-draft-62
+      trigger: true
+
+    - task: list-draft-release-62
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: alpine/git
+
+        inputs:
+        - name: gh-release-draft-62
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - ls -lR .
+
+- name: print-draft-release
+  plan:
+    - get: gh-release-draft
+      trigger: true
+
+    - task: list-draft-release
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: alpine/git
+
+        inputs:
+        - name: gh-release-draft
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - ls -lR .
+
+- name: print-draft-release-dev
+  plan:
+    - get: gh-release-draft-dev
+      trigger: true
+
+    - task: list-draft-release-dev
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: alpine/git
+
+        inputs:
+        - name: gh-release-draft-dev
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - ls -lR .
