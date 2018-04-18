@@ -220,7 +220,7 @@ jobs:
   - task: build-artifact
     file: master/ci/tasks/build-artifact.yml
 
-  - put: gh-release-draft-62
+  - put: gh-release-draft-dev
     params:
       name: version-draft/number
       tag: artifacts/hash
@@ -231,13 +231,6 @@ jobs:
   - put: version-draft
     params:
       bump: patch
-
-  - put: gh-release-draft
-    params:
-      name: version-draft/number
-      tag: version-draft/number
-      globs:
-      - artifacts/*.tgz
 
 - name: print-draft-release-62
   plan:
