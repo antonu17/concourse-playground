@@ -225,6 +225,7 @@ jobs:
       name: version-draft/number
       tag: artifacts/hash
       body: artifacts/body
+      commitish: artifacts/target_commit
       globs:
       - artifacts/*.tgz
 
