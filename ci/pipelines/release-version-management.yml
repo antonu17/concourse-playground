@@ -3,7 +3,24 @@ resource_types:
 - name: semver-depth
   type: docker-image
   source:
-      repository: quay.io/antonu17/semver-resource-depth
+    repository: quay.io/antonu17/semver-resource-depth
+
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+
+- name: gh-release-62
+  type: docker-image
+  source:
+    repository: concourse/github-release-resource
+    tag: pr-62
+
+- name: gh-release-dev
+  type: docker-image
+  source:
+    repository: quay.io/antonu17/github-release-resource
+    tag: dev
 
 resources:
 - name: master
@@ -39,6 +56,36 @@ resources:
     release: true
     pre_release: false
 
+- name: gh-release-draft
+  type: github-release
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: false
+    pre_release: false
+    drafts: true
+
+- name: gh-release-draft-62
+  type: gh-release-62
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: false
+    pre_release: false
+    drafts: true
+
+- name: gh-release-draft-dev
+  type: gh-release-dev
+  source:
+    owner: ((github_owner))
+    repository: ((github_repo))
+    access_token: ((github_token))
+    release: false
+    pre_release: false
+    drafts: true
+
 - name: version
   type: semver
   source:
@@ -49,6 +96,26 @@ resources:
     private_key: ((github_ssh_key))
     initial_version: 0.0.0
     depth: 1
+
+- name: version-draft
+  type: semver
+  source:
+    driver: git
+    uri: ((github_uri))
+    branch: version
+    file: version-draft
+    private_key: ((github_ssh_key))
+    initial_version: 0.0.0
+    depth: 1
+
+- name: pr
+  type: pull-request
+  source:
+    base: master
+    uri: ((github_uri))
+    repo: antonu17/concourse-playground
+    access_token: ((github_token))
+    private_key: ((github_ssh_key))
 
 jobs:
 - name: bump-version
@@ -137,3 +204,100 @@ jobs:
 
   - task: build-artifact
     file: master/ci/tasks/build-artifact.yml
+
+# PR flow
+- name: build-pr
+  plan:
+  - get: master
+    resource: pr
+    version: every
+    trigger: true
+
+  - put: version-draft
+    params:
+      bump: patch
+  
+  - task: build-artifact
+    file: master/ci/tasks/build-artifact.yml
+
+  - put: gh-release-draft-dev
+    params:
+      name: version-draft/number
+      tag: artifacts/hash
+      body: artifacts/body
+      commitish: artifacts/target_commit
+      globs:
+      - artifacts/*.tgz
+
+  - put: version-draft
+    params:
+      bump: patch
+
+- name: print-draft-release-62
+  plan:
+    - get: gh-release-draft-62
+      trigger: true
+
+    - task: list-draft-release-62
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: alpine/git
+
+        inputs:
+        - name: gh-release-draft-62
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - ls -lR .
+
+- name: print-draft-release
+  plan:
+    - get: gh-release-draft
+      trigger: true
+
+    - task: list-draft-release
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: alpine/git
+
+        inputs:
+        - name: gh-release-draft
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - ls -lR .
+
+- name: print-draft-release-dev
+  plan:
+    - get: gh-release-draft-dev
+      trigger: true
+
+    - task: list-draft-release-dev
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: alpine/git
+
+        inputs:
+        - name: gh-release-draft-dev
+
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - ls -lR .

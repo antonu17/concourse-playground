@@ -14,4 +14,4 @@ run:
   path: master/ci/scripts/alert.sh
 
 params:
-  NEW_MESSAGE: Message: {{ MESSAGE }}
+  NEW_MESSAGE: 'Message: {{ MESSAGE }}'
