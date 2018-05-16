@@ -210,6 +210,7 @@ jobs:
       - gh-release-candidate/*.tgz
 
   - get: docker-image
+    passed: [ build-rc ]
     params:
       save: true
 
