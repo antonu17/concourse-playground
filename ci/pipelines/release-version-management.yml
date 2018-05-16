@@ -168,15 +168,19 @@ jobs:
       platform: linux
       image_resource:
         type: docker-image
-        source: busybox
+        source:
+          repository: busybox
+
       inputs:
         - name: version
-      output:
+
+      outputs:
         - name: docker-build-args
       run:
-        - /bin/sh
-        - -c
-        - echo "{ \"VERSION\": \"`cat version/version`}\"" > docker-build-args/args
+        path: /bin/sh
+        args:
+          - -c
+          - 'echo "{ \"VERSION\": \"`cat version/version`}\"" > docker-build-args/args'
 
   - put: docker-image
     params:
