@@ -86,6 +86,13 @@ resources:
     pre_release: false
     drafts: true
 
+- name: docker-image
+  type: docker-image
+  source:
+    repository: quay.io/antonu17/concourse-playground
+    username: ((quay_username))
+    password: ((quay_password))
+
 - name: version
   type: semver
   source:
@@ -155,6 +162,12 @@ jobs:
   - put: version
     params:
       file: version/version
+
+  - put: docker-image
+    params:
+      tag: version/version
+      tag_as_latest: true
+      build: master
 
 - name: promote-a-release
   serial_groups: [ version ]
