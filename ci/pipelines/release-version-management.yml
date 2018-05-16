@@ -147,8 +147,6 @@ jobs:
     file: master/ci/tasks/build-artifact.yml
 
   - get: version
-    passed:
-    - bump-version
     params:
       pre: rc
 
@@ -180,7 +178,7 @@ jobs:
         path: /bin/sh
         args:
           - -c
-          - 'echo "{ \"VERSION\": \"`cat version/version`}\"" > docker-build-args/args'
+          - 'echo "{ \"VERSION\": \"`cat version/version`\" }" > docker-build-args/args'
 
   - put: docker-image
     params:
