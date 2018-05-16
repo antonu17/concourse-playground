@@ -163,15 +163,35 @@ jobs:
     params:
       file: version/version
 
+  - task: prepare-docker-build-args
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: busybox
+      inputs:
+        - name: version
+      output:
+        - name: docker-build-args
+      run:
+        - /bin/sh
+        - -c
+        - echo "{ \"VERSION\": \"`cat version/version`}\"" > docker-build-args/args
+
   - put: docker-image
     params:
       tag: version/version
       tag_as_latest: true
+      build_args_file: docker-build-args/args
       build: master
 
 - name: promote-a-release
   serial_groups: [ version ]
   plan:
+  - get: rc-version
+    resource: version
+    passed: [ build-rc ]
+
   - get: version
     passed: [ build-rc ]
     params:
@@ -186,6 +206,16 @@ jobs:
       tag: version/version
       globs:
       - gh-release-candidate/*.tgz
+
+  - get: docker-image
+    params:
+      save: true
+
+  - put: docker-image
+    params:
+      load: docker-image
+      load_tag: rc-version/version
+      tag: version/version
 
   - put: version
     params:

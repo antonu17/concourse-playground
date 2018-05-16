@@ -1,1 +1,3 @@
 FROM alpine
+ARG VERSION
+RUN echo ${VERSION} > /VERSION
