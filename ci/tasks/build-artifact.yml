@@ -5,6 +5,7 @@ image_resource:
   type: docker-image
   source:
     repository: alpine/git
+    tag: ((TAG))
 
 inputs:
 - name: master
